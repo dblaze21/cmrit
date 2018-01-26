@@ -2,28 +2,59 @@
 
 import random
 import numpy
-import math
 
-subjects  = ['CO','DS','DMS','ADE','USP','M3']
-subjects1 = ['CO','DS','DMS','ADE','USP','M3']
-subjects2 = ['CO','DS','DMS','ADE','USP','M3']
-subjects3 = ['CO','DS','DMS','ADE','USP','M3']
-#subjects1 = []
-#subjects2 = []
-#subjects = []
-teachers = ['T1','T2','T3','T4','T5','T6']
-labs = ['L1','L2']
+subjects  = ['SE','DAA','MP','OOPS','DC','M4']
+subjects1 = ['SE','DAA','MP','OOPS','DC','M4']
+subjects2 = ['SE','DAA','MP','OOPS','DC','M4']
+subjects3 = ['SE','DAA','MP','OOPS','DC','M4']
+			
+			#NAME,      SUB, CLASS, LAB
+teachers = [['Daminder','SE' ,'ABC',''],
+			['Bharati',  'M4' ,'AB',''],
+			['Vijay Baskar', 'DAA','A',''],
+			['Bhumika',	'MP','AB','AB'],
+			['Sudhakar','DC','AB',''],
+			['Sudhakar','MP','','C'],
+			['Poornima', 'OOPS' ,'AB',''],
+			['Poornima', 'DAA', '', 'AB'],
+			['Gopika','DAA','','AB'],
+			['Reshma','DAA','','ABC'],
+			['Sudha','DAA','', 'AB'],
+			['Meenakshi', 'MP', '', 'ABC'],
+			['Anand', 'MP', '', 'ABC'],
+			['Jhansi', 'DAA', 'B', ''],
+			['Pinchu','DAA', '', 'BC'],
+			['Sonali', 'DAA', '', 'BC'],
+			['Preeti', 'MP', 'C', 'BC'],
+			['Usha', 'M4', 'C', ''],
+			['Premkumar', 'DAA', 'C', ''],
+			['Navneetha', 'OOPS', 'C', 'C'],
+			['Savitha', 'DC', 'C', 'C']]
+
+			
+labs = ['MP-L','DAA-L']
 hours = [4,4,4,4,4,4]
 lab_duration = 3
 classes_per_day = 1
 c, r = 7, 6
 half_days = [3,1]
+number_of_sections = 3
 
 Table1 = [[0 for x in range(c)] for y in range(r)]
 Table2 = [[0 for x in range(c)] for y in range(r)]
 Table3 = [[0 for x in range(c)] for y in range(r)]
 
-def markD4():
+def freehoursperweek():
+	freehours = 0
+	for hour in hours:
+		freehours = freehours + hour
+	freehours = freehours + (len(labs)*lab_duration)
+	freehours = (r*c)-freehours
+	return freehours-6
+
+#print(freehoursperweek())
+
+def markhalfdays():
 	for i in range(4,c):
 		Table1[3][i] = 'X'
 		Table2[3][i] = 'X'
@@ -36,7 +67,7 @@ def firstHour():
 	used1 = []
 	used2 = []
 	day = 0
-	while day != 6:
+	while day != r:
 		val1 = random.randrange(len(subjects1))
 		val2 = random.randrange(len(subjects2))
 		if subjects1[val1] not in used1 and subjects2[val2] not in used2 and val1 != val2:
@@ -50,7 +81,7 @@ def firstHour():
 def placeLabs():
 	used_labs = []
 	labs_placed = 0
-	lab_hour = [0,c-3]
+	lab_hour = [0,c-lab_duration]
 	lab_hour_picked = []
 	days_picked = []
 	
@@ -84,6 +115,7 @@ def placeLabs():
 					lab_hour_picked.append(lab_hour_pick3)
 					days_picked.append(day_pick)
 					labs_placed += 1
+
 def count(Table, key):
 	count = 0
 	for row in range(r):
@@ -170,7 +202,7 @@ def distributeClasses3():
 def findFaultyLabRows(Table):
 	rows_to_fix1 = []
 	for row in range(r):
-		if Table[row].count(0) > 0 and ('L1' == Table[row][5] or 'L2' == Table[row][5] or 'L3' == Table[row][5]):
+		if Table[row].count(0) > 0 and (Table[row][c-lab_duration] in labs):
 			rows_to_fix1.append(row)
 			#print('found row',row)
 	#print("to fix ->",rows_to_fix1)
@@ -211,6 +243,8 @@ def printTables(Table1, Table2, Table3):
 	print('\n')
 	print(numpy.matrix(Table3))
 	print('\n')
+	print(numpy.matrix(teachers))
+	print('\n')
 	
 def checkConflict(Table1, Table2):
 	res = []
@@ -227,7 +261,7 @@ def fixFaultyRows(Table1, Table2):
 	offset = 0
 	t = 0
 	for row in range(r):
-		if Table1[row].count(0) > 0 and Table1[row][5] not in labs and row !=3 and row !=1:
+		if Table1[row].count(0) > 0 and Table1[row][c-lab_duration] not in labs and row !=3 and row !=1:
 			#print('fixing row',row)
 			while True:
 				pos = Table1[row].index(0)
@@ -255,13 +289,11 @@ def fixFaultyRows(Table1, Table2):
 		#	print('Not a faulty row')	
 	return Table1
 				
-def removeGaps(Table1, Table2):
-	TEMP = Table1
+def removeGaps(Table):
 	for row in range(r):
-		#print(TEMP[row])
-		if 0 in TEMP[row] and TEMP[row].index(0) < 5:
+		if 0 in Table[row] and Table[row].index(0) < c-2:
 			bad_row = row
-			bad_col = TEMP[row].index(0)
+			bad_col = Table[row].index(0)
 			track_col = c-1
 			track_row = 0
 			while True:
@@ -271,26 +303,17 @@ def removeGaps(Table1, Table2):
 					track_row = 0
 					track_col -= 1
 				#print('trackrow : ',track_row,'trackcol : ',track_col)
-				if TEMP[track_row][track_col] not in labs and TEMP[track_row][track_col] != 0 and TEMP[track_row][track_col] != 'X':
+				if Table[track_row][track_col] not in labs and Table[track_row][track_col] != 0 and Table[track_row][track_col] != 'X':
 					#SWAP
-					TEMP[bad_row][bad_col] = TEMP[track_row][track_col]
-					TEMP[track_row][track_col] = 0
-					if checkConflict(TEMP, Table2) == 0:
-						Table1 = TEMP
-						#print("MOVE SUCCESSFUL")
-						#printTables(Table1, Table2)
-						break
-					else:
-						#print("MOVE NOT PERMITTED. SKIPPING")
-						break
-				track_row += 1
-			#track_col -= 1
-			#print(bad_row,bad_col)
-	return Table1
+					Table[bad_row][bad_col] = Table[track_row][track_col]
+					Table[track_row][track_col] = 0
+					return Table
+				else:
+					track_row += 1
 
 def badRowCheck(Table1):
 	for row in range(r):
-			if 0 in Table1[row] and Table1[row].index(0) < 5:
+			if 0 in Table1[row] and Table1[row].index(0) < c-2:
 				return 1
 	return 0
 	
@@ -359,61 +382,301 @@ def fixConflicts(Table1,Table2):
 			else:
 				#print(pick_row,pick_col,"to",bad_row,bad_col,"was successful")
 				Table1 = TEMP
-def printTeacherTable(sub):
-	TEACHER = [[0 for x in range(c)] for y in range(r)]
+				
+def fixTableFH(Table1, Table2, Table3):
+	#print(numpy.matrix(Table3))
+	Table3 = numpy.asarray(Table3)
+	first_hours = numpy.ndarray.tolist(Table3.T[0])
+	Table3 = numpy.ndarray.tolist(Table3)
+	#first_hours = list(first_hours)
+	#print(first_hours)
+	for subject in subjects:
+		count = 0
+		for i in range(len(first_hours)):
+			if subject == first_hours[i]:
+				count += 1
+				if count > 1:
+					break
+		if count > 1:
+			while True:
+				pick_row = random.randrange(r)
+				pick_col = random.randrange(c)
+				if Table3[pick_row][pick_col] not in labs and Table3[pick_row][pick_col] != 'X' and Table3[pick_row][pick_col] != 0 and first_hours.count(Table3[pick_row][pick_col]) == 0:
+					temp = Table3
+					temp_sub = temp[pick_row][pick_col] 
+					temp[pick_row][pick_col] = temp[i][0]
+					temp[i][0] = temp_sub
+					if checkConflict(Table1, Table3) == 0 and checkConflict(Table2, Table3) == 0:
+						Table3 = temp
+						break
+	return Table3
+
+def getcolumn(Table, pos):
+	Table = numpy.asarray(Table)
+	Table = numpy.ndarray.tolist(Table.T[pos])
+	#Table = numpy.ndarray.tolist(Table)
+	return Table
+
+def fixTableFHv2(Table1, Table2, Table3, id):
+	for i in range(len(subjects)):
+		column = getcolumn(Table1, 0)
+		if column.count(subjects[i]) > 1:
+			Table1 = swapRandom(Table1, column.index(subjects[i]), 0)
+	for i in range(len(subjects)):
+		column = getcolumn(Table2, 0)
+		if column.count(subjects[i]) > 1:
+			Table2 = swapRandom(Table2, column.index(subjects[i]), 0)
+	for i in range(len(subjects)):
+		column = getcolumn(Table3, 0)
+		if column.count(subjects[i]) > 1:
+			Table3 = swapRandom(Table3, column.index(subjects[i]), 0)
+	for row in range(r):
+		for col in range(1):
+			if Table1[row][col] == Table2[row][col] and Table1[row][col] in subjects:
+				Table1 = swapRandom(Table1, row, col)
+			if Table1[row][col] == Table3[row][col] and Table1[row][col] in subjects:
+				Table1 = swapRandom(Table1, row, col)
+			if Table2[row][col] == Table1[row][col] and Table2[row][col] in subjects:
+				Table2 = swapRandom(Table2, row, col)
+			if Table2[row][col] == Table3[row][col] and Table2[row][col] in subjects:
+				Table2 = swapRandom(Table2, row, col)
+			if Table3[row][col] == Table2[row][col] and Table3[row][col] in subjects:
+				Table3 = swapRandom(Table3, row, col)
+			if Table3[row][col] == Table1[row][col] and Table3[row][col] in subjects:
+				Table3 = swapRandom(Table3, row, col)
+	if id == 1:
+		return Table1
+	if id == 2:
+		return Table2
+	if id == 3:
+		return Table3
+
+					
+def fixTableCounts(Table1, Table2, Table3):
+	#print(numpy.matrix(Table3))
+	for row in range(r):
+		for col in range(1,c):
+			if Table3[row].count(Table3[row][col]) > classes_per_day and Table3[row][col] in subjects:
+				#while True:
+				#for pick_row in range(r):
+				#	for pick_col in range(1,c):
+				while True:
+					pick_row = random.randrange(r)
+					pick_col = random.randrange(c)
+				#pick_row = random.randrange(r)
+				#pick_col = random.randrange(c)
+					if Table3[pick_row][pick_col] not in labs and Table3[pick_row][pick_col] != 'X' and Table3[pick_row][pick_col] != 0 and pick_col != 0:
+						temp = Table3
+						temp_sub = temp[pick_row][pick_col] 
+						temp[pick_row][pick_col] = temp[row][col]
+						temp[row][col] = temp_sub
+						if checkConflict(Table1, Table3) == 0 and checkConflict(Table2, Table3) == 0:
+							Table3 = temp
+							break
+	return Table3
+				
+def checkHours(Table):
+	for row in range(r):
+			for col in range(1,c):
+				if Table[row].count(Table[row][col]) > classes_per_day and Table[row][col] in subjects:
+					print('Flaw detected!')	
+					return -1
+	return 0	
+
+def printProfTable(SUB,SEC,LAB):
+	PROF_TABLE = [[0 for x in range(c)] for y in range(r)]
 	for row in range(r):
 		for col in range(c):
-			if Table1[row][col] == sub:
-				TEACHER[row][col] = sub + '-A'
-			if Table2[row][col] == sub:
-				TEACHER[row][col] = sub + '-B'
-			if Table3[row][col] == sub:
-				TEACHER[row][col] = sub + '-C'
-	return TEACHER
+			
+			if Table1[row][col] == SUB and 'A' in SEC:
+				PROF_TABLE[row][col] = SUB + '-A'
+			if SUB in str(Table1[row][col]) and '-L' in str(Table1[row][col]) and 'A' in LAB:
+				PROF_TABLE[row][col] = SUB + '-L' + '(A)'
+				
+			if Table2[row][col] == SUB and 'B' in SEC:
+				PROF_TABLE[row][col] = SUB + '-B'
+			if SUB in str(Table2[row][col]) and '-L' in str(Table2[row][col]) and 'A' in LAB:
+				PROF_TABLE[row][col] = SUB + '-L' + '(B)'
+				
+			if Table3[row][col] == SUB and 'C' in SEC:
+				PROF_TABLE[row][col] = SUB + '-C'
+			if SUB in str(Table3[row][col]) and '-L' in str(Table3[row][col]) and 'A' in LAB:
+				PROF_TABLE[row][col] = SUB + '-L' + '(C)'
+	return PROF_TABLE
+
+def createProfTable():
+	table = numpy.asarray(teachers)
+	table = numpy.array(table.T[0])
+	table = numpy.ndarray.tolist(table)
+
+	for i in range(len(table)):
+		print('Prof. '+str(table[i]))
+		print(numpy.matrix(printProfTable(teachers[i][1], teachers[i][2], teachers[i][3])))
+		print('\n\n')
+
+def clearLab(Table1, Table2, Table3):
+	for row in range(r):
+		for col in range(c):
+			if isLab(Table1[r][c],Table2[r][c]) == 1:
+				print("Found conflicting lab - 1\n")
+				while True:
+					pick_row = random.randrange(r)
+					pick_col = random.randrange(c)
+					if Table1[pick_row][pick_col] not in labs and Table1[pick_row][pick_col] != 'X' and Table1[pick_row][pick_col] != 0 and first_hours.count(Table1[pick_row][pick_col]) == 0:
+						temp = Table1
+						temp_sub = temp[pick_row][pick_col] 
+						temp[pick_row][pick_col] = temp[i][0]
+						temp[i][0] = temp_sub
+						if checkConflict(Table1, Table3) == 0 and checkConflict(Table2, Table3) == 0:
+							Table3 = temp
+							break
+
+def isLab(subject, lab):
+	if str(subject) in str(lab) and '-L' in str(lab):
+		return 1
+	return 0
+
+def checkLab(Table1, Table2, Table3):
+	for row in range(r):
+		for col in range(c):
+				if isLab(Table1[row][col],Table2[row][col]) == 1:
+					print("Move subject from table 1 (2)")
+				if isLab(Table2[row][col],Table1[row][col]) == 1:
+					print("Move subject from table 2 (1)")
+				if isLab(Table3[row][col],Table1[row][col]) == 1:
+					print("Move subject from table 3 (1)")
+				if isLab(Table3[row][col],Table2[row][col]) == 1:
+					print("Move subject from table 3 (2)")
+				if isLab(Table2[row][col],Table3[row][col]) == 1:
+					print("Move subject from table 2 (3)")
+				if isLab(Table1[row][col],Table3[row][col]) == 1:
+					print("Move subject from table 1 (3)")
+	print("Lab conflicts checked")
+
+def done():
+	print('Done!')
+
+def swapRandom(TableX, badrow, badcol):
+	while True:
+		pick_row = random.randrange(r)
+		pick_col = random.randrange(c)
+		if TableX[pick_row][pick_col] in subjects and pick_col > 0:
+			temp = TableX[badrow][badcol]
+			TableX[badrow][badcol] = TableX[pick_row][pick_col]
+			TableX[pick_row][pick_col] = temp
+			return TableX
+
+
+
+def fixconflicts3tables(Table1, Table2, Table3, trig):
+	for row in range(r):
+		for col in range(1,c):
+			if Table1[row][col] == Table2[row][col] and Table1[row][col] in subjects:
+				Table1 = swapRandom(Table1, row, col)
+			if Table1[row][col] == Table3[row][col] and Table1[row][col] in subjects:
+				Table1 = swapRandom(Table1, row, col)
+			if Table2[row][col] == Table1[row][col] and Table2[row][col] in subjects:
+				Table2 = swapRandom(Table2, row, col)
+			if Table2[row][col] == Table3[row][col] and Table2[row][col] in subjects:
+				Table2 = swapRandom(Table2, row, col)
+			if Table3[row][col] == Table2[row][col] and Table3[row][col] in subjects:
+				Table3 = swapRandom(Table3, row, col)
+			if Table3[row][col] == Table1[row][col] and Table3[row][col] in subjects:
+				Table3 = swapRandom(Table3, row, col)
+	if trig == 1:
+		return Table1
+	if trig == 2:
+		return Table2
+	if trig == 3:
+		return Table3
 		
 def buildTables(Table1, Table2, Table3):
-	markD4()
-	firstHour()
+	print('Marking half days...')
+	markhalfdays()
+	done()
+	print('Placing labs...')
 	placeLabs()	
+	done()
+	print('Placing classes in A&B...')
 	distributeClasses()
+	done()
+	print('Placing classes in C...')
 	distributeClasses3()
+	done()
+	print('Fixing faulty rows...')
+	print('Stage 1')
 	Table1 = fixLabRows(Table1, Table2, findFaultyLabRows(Table1))
+	print('Stage 2')
 	Table2 = fixLabRows(Table2, Table1, findFaultyLabRows(Table2))
+	print('Stage 3')
 	Table3 = fixLabRows(Table3, Table1, findFaultyLabRows(Table3))
+	print('Stage 4')
 	Table3 = fixLabRows(Table3, Table2, findFaultyLabRows(Table3))
+	print('Stage 5')
 	Table1 = fixFaultyRows(Table1, Table2)
+	print('Stage 6')
 	Table2 = fixFaultyRows(Table2, Table1)
+	print('Stage 7')
 	Table3 = fixFaultyRows(Table3, Table2)
+	print('Stage 8')
 	Table3 = fixFaultyRows(Table3, Table1)
-	#printTables(Table1, Table2)
-	#printTables(Table1, Table2)
-	for i in range(1):
-		while badRowCheck(Table1) != 0:
-			Table1 = removeGaps(Table1, Table2)
-		while badRowCheck(Table2) != 0:	
-			Table2 = removeGaps(Table2, Table1)
-		while badRowCheck(Table3) != 0:	
-			Table3 = removeGaps(Table3, Table1)
-		while badRowCheck(Table3) != 0:	
-			Table3 = removeGaps(Table3, Table2)
-		for i in range(5):
-			Table1 = fixConflicts(Table1, Table2)
-			Table2 = fixConflicts(Table2, Table1)
-			Table3 = fixConflicts(Table3, Table1)
-			Table3 = fixConflicts(Table3, Table2)
-			while checkDoubleFullTable(Table1) != -1:
-				fixDoubleClasses(Table1, Table2)
-			while checkDoubleFullTable(Table2) != -1:
-				fixDoubleClasses(Table2, Table1)
-			while checkDoubleFullTable(Table3) != -1:
-				fixDoubleClasses(Table3, Table1)
-			while checkDoubleFullTable(Table3) != -1:
-				fixDoubleClasses(Table3, Table2)
+	done()
+	print('Clearing free spaces...[Restart if stuck]')
+	while badRowCheck(Table1) != 0:
+		Table1 = removeGaps(Table1)
+	while badRowCheck(Table2) != 0:
+		Table2 = removeGaps(Table2)
+	while badRowCheck(Table3) != 0:
+		Table3 = removeGaps(Table3)
+	while badRowCheck(Table3) != 0:
+		Table3 = removeGaps(Table3)
+	done()
+	#printTables(Table1, Table2, Table3)
+	print('Fixing conflicts...')
+	for i in range(5):
+		#Table1 = fixConflicts(Table1, Table2)
+		#Table2 = fixConflicts(Table2, Table1)
+		#Table3 = fixConflicts(Table3, Table1)
+		#Table3 = fixConflicts(Table3, Table2)
+		Table1 = fixconflicts3tables(Table1, Table2, Table3, 1)
+		Table2 = fixconflicts3tables(Table1, Table2, Table3, 2)
+		Table3 = fixconflicts3tables(Table1, Table2, Table3, 3)
+		#printTables(Table1, Table2, Table3)
+		while checkDoubleFullTable(Table1) != -1:
+			fixDoubleClasses(Table1, Table2)
+		while checkDoubleFullTable(Table2) != -1:
+			fixDoubleClasses(Table2, Table1)
+		while checkDoubleFullTable(Table3) != -1:
+			fixDoubleClasses(Table3, Table1)
+		while checkDoubleFullTable(Table3) != -1:
+			fixDoubleClasses(Table3, Table2)
+	done()
+	print('Fixing first hours...')
+	for i in range(5):
+		Table1 = fixTableFHv2(Table1, Table2, Table3, 1)
+		Table2 = fixTableFHv2(Table1, Table2, Table3, 2)
+		Table3 = fixTableFHv2(Table1, Table2, Table3, 3)
+	#printTables(Table1, Table2, Table3)
+	while checkHours(Table3) != 0:
+		Table3 = fixTableCounts(Table1, Table2, Table3)
+		print('Flaw corrected!')
+	while checkHours(Table2) != 0:
+		Table2 = fixTableCounts(Table3, Table1, Table2)
+		print('Flaw corrected!')
+	while checkHours(Table1) != 0:
+		Table1 = fixTableCounts(Table3, Table2, Table1)
+		print('Flaw corrected!')
+	done()
+	print('Checking for conflicts...')
 	if checkConflict(Table1, Table2) == 0 and checkConflict(Table1, Table3) == 0 and checkConflict(Table2, Table3) == 0:
+		done()
 		printTables(Table1, Table2, Table3)
-		print(numpy.matrix(printTeacherTable(str('DMS'))))
+		createProfTable()
+		checkLab(Table1, Table2, Table3)
 	else:
 		print("Please retry. Error!")
 	
-buildTables(Table1, Table2, Table3)
+def initialize():
+	buildTables(Table1, Table2, Table3)
 
+initialize()
